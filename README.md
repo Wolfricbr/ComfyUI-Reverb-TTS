@@ -4,7 +4,7 @@
 
 [🇧🇷 Português](#português) · [Original Reverb-TTS model](https://huggingface.co/software-mansion/Reverb-TTS) · [Workflows](./workflows)
 
-> **Experimental integration · v0.3.1.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
+> **Experimental integration · v0.3.2.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
 
 ## Features
 
@@ -79,7 +79,7 @@ C:\AI\ComfyUI-Data\models\reverb_tts\
 └── voices_custom\            (created automatically for custom .npz voices)
 ```
 
-The loader also supports a fallback under `ComfyUI/models/reverb_tts` **if the preferred directory does not exist**. The preferred directory is currently **hard-coded to the path above**, so installations using other locations should use the fallback or adjust the code. This project does not use `diffusion_models`.
+The loader also supports a fallback under `ComfyUI/models/reverb_tts` **if the preferred directory does not exist**. In v0.3.2, the **Reverb | Load Model (Local)** node also accepts an optional `models_directory` field, and the `REVERB_TTS_MODELS_DIR` environment variable provides another option. The path must contain both `Reverb-TTS/` and `higgs-audio-v2-tokenizer/`. The example Windows directory remains the legacy default. This project does not use `diffusion_models`.
 
 Download these components:
 
@@ -166,7 +166,7 @@ Use `Reverb | Save Voice (.npz)` to create them. Existing files are not overwrit
 
 ## License and responsible use
 
-This repository contains community integration code and example workflows; **no model weights are distributed here**. The [upstream Reverb-TTS project](https://huggingface.co/software-mansion/Reverb-TTS) has its own licenses. At the time of writing, the **Reverb-TTS model weights are licensed CC BY-NC 4.0 (non-commercial)**, while upstream code licensing is separate. The present repository **does not yet declare a license for its integration code**; do not infer that the model weights' license applies to this repository's code.
+This repository contains community integration code and example workflows; **no model weights are distributed here**. The [upstream Reverb-TTS project](https://huggingface.co/software-mansion/Reverb-TTS) has its own licenses. At the time of writing, the **Reverb-TTS model weights are licensed CC BY-NC 4.0 (non-commercial)**, while upstream code licensing is separate. The present repository **declares Apache-2.0 for its own integration code** (see `LICENSE`); the license for model weights remains separate.
 
 Use reference voices only with appropriate consent or authorization, and review the upstream licenses before commercial use.
 
@@ -199,7 +199,7 @@ Use reference voices only with appropriate consent or authorization, and review 
 C:\AI\ComfyUI-Data\models\reverb_tts\
 ```
 
-Se ela não existir, o código procura `ComfyUI/models/reverb_tts`. Para outros caminhos personalizados, ajuste o código.
+Na v0.3.2, o node **Reverb | Load Model (Local)** aceita o campo opcional `models_directory` para informar outra pasta de modelos. Também é possível usar a variável de ambiente `REVERB_TTS_MODELS_DIR`. Se não houver caminho configurado, o sistema preserva o caminho Windows acima (quando existe) e, caso contrário, procura `ComfyUI/models/reverb_tts`.
 
 ### Para que serve cada workflow?
 
@@ -216,3 +216,18 @@ Se ela não existir, o código procura `ComfyUI/models/reverb_tts`. Para outros 
 **Biblioteca de vozes:** `C:\AI\ComfyUI-Data\models\reverb_tts\voices_custom\`. Novas vozes podem exigir atualizar a página (F5) para aparecer no seletor.
 
 **Atenção:** a integração ainda é experimental. Os testes relatados anteriormente foram de estrutura e código; a geração real e a compatibilidade com todos os ambientes precisam ser validadas. Os pesos Reverb-TTS são **CC BY-NC 4.0**, com restrições a uso comercial. Use vozes de outras pessoas somente com autorização.
+
+
+## v0.3.2 — Custom model path / Caminho personalizado
+
+**English:** The model loader now supports an optional `models_directory` input. Leave it blank to use `REVERB_TTS_MODELS_DIR` if set, otherwise the existing legacy Windows directory (`C:\\AI\\ComfyUI-Data\\models\\reverb_tts`) when present, otherwise `ComfyUI/models/reverb_tts`. No models are downloaded automatically. The directory must contain both `Reverb-TTS` and `higgs-audio-v2-tokenizer` with their expected contents.
+
+**Important:** This setting applies to **model loading**. In the current version, the `.npz` voice library still uses the default/environment-resolved root, so set `REVERB_TTS_MODELS_DIR` as well if you move your entire library, or keep `voices_custom` in its existing location. Existing workflows remain compatible.
+
+**Português:** O carregador aceita o campo opcional `models_directory`. Se ficar vazio, usa a variável `REVERB_TTS_MODELS_DIR` quando definida; senão, mantém a pasta Windows já utilizada (quando existir) e, por último, `ComfyUI/models/reverb_tts`. Não há download automático. **Atenção:** a biblioteca de vozes `.npz` ainda utiliza o diretório padrão/definido pela variável de ambiente; o campo do node não muda a pasta dos perfis.
+
+### Dependency compatibility / Compatibilidade de dependências
+
+The package `reverb-tts==1.0.0` can introduce conflicting dependency requirements in an existing ComfyUI installation. Run `python -m pip install --dry-run -r requirements.txt` before installation, and `python -m pip check` afterwards. Do not assume all custom nodes will remain compatible. No dependency upgrades are required solely to pull this v0.3.2 code change.
+
+O pacote `reverb-tts==1.0.0` pode produzir conflitos em instalações com outros custom nodes. Verifique o `--dry-run` antes de instalar e execute `pip check` depois. Não é necessário reinstalar dependências apenas para atualizar o código desta versão.
