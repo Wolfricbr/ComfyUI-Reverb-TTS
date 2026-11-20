@@ -1,6 +1,6 @@
 [project]
 name = "comfyui-reverb-tts"
-version = "0.3.3"
+version = "0.3.4"
 description = "Local Reverb-TTS speech synthesis, voice cloning, reusable voice profiles, and WAV export nodes for ComfyUI"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
