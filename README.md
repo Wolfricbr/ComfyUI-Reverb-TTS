@@ -4,7 +4,7 @@
 
 [🇧🇷 Português](#português) · [Original Reverb-TTS model](https://huggingface.co/software-mansion/Reverb-TTS) · [Workflows](./workflows)
 
-> **Experimental integration · v0.3.6.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
+> **Experimental integration · v0.3.7.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
 
 ## Features
 
@@ -261,3 +261,10 @@ The six public workflow JSON files (01–05 and 07) were migrated to `Auto / fp3
 The `model` dropdown lists one `Auto / <variant>` entry for each detected precision. A location-specific entry is displayed **only if that variant is also installed in another distinct models directory**. The existing `Auto / fp32` workflow selections remain compatible. No weights or dependencies change.
 
 O menu de modelos não mostra mais `Auto / fp32` e `Windows / fp32` quando ambos apontam para os mesmos pesos. Se houver outra instalação realmente distinta da mesma variante, essa segunda pasta poderá ser selecionada separadamente. Reinicie o ComfyUI e atualize o node após fazer o `git pull`.
+
+
+## v0.3.7 — Fix Save WAV missing connection
+
+**English:** Fixed the `Reverb | Save WAV` node incorrectly declaring its `audioUI` preview widget as a mandatory input. The frontend was asking for a connection to the UI widget and blocking execution. The preview widget is now in the **optional** inputs section, while the real `audio` input remains required. WAV saving and `ui.audio` preview metadata are unchanged. Restart ComfyUI and refresh the workflow; recreate the Save WAV node if it retains the old required slot. Verify the inline player after a fresh execution.
+
+**Português:** Corrigido o erro **Missing connection: Reverb | Save WAV – audioUI**. `audioUI` é um widget de interface, não uma entrada que precisa ser conectada. Agora está declarado como entrada opcional. A entrada `audio` continua obrigatória. Reinicie o ComfyUI, atualize a página e, se necessário, substitua apenas o node Save WAV por um novo antes de executar novamente. O player deve ser validado na instalação real.
