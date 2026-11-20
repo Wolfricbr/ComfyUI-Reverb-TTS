@@ -4,7 +4,7 @@
 
 [🇧🇷 Português](#português) · [Original Reverb-TTS model](https://huggingface.co/software-mansion/Reverb-TTS) · [Workflows](./workflows)
 
-> **Experimental integration · v0.3.3.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
+> **Experimental integration · v0.3.4.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
 
 ## Features
 
@@ -240,3 +240,10 @@ O pacote `reverb-tts==1.0.0` pode produzir conflitos em instalações com outros
 **After updating:** completely restart ComfyUI, refresh the browser, **remove the old Save WAV node and add a fresh `Reverb | Save WAV`** if the player does not immediately appear, reconnect its audio input, then run the workflow. The player is populated **after a new execution**; previously generated audio does not automatically reappear. No extra Python dependencies or model downloads are needed. This change is based on ComfyUI's built-in `AUDIO_UI` widget interface; actual frontend behavior should still be confirmed on the user's installation.
 
 **Português:** O node `Reverb | Save WAV` passa a declarar `AUDIO_UI`, necessário para renderizar o player nativo no frontend. Reinicie o ComfyUI, atualize a página e, se necessário, **apague apenas o node antigo de salvamento, adicione o novo e reconecte a entrada `audio`**. Execute novamente para preencher o player. Não é necessário baixar pesos nem reinstalar bibliotecas. A interface precisa ser verificada no ComfyUI real.
+
+
+## v0.3.4 — Installed-model dropdown / Lista de modelos instalados
+
+**English:** `Reverb | Load Model (Local)` now includes the optional `installed_model` dropdown. It detects locally installed Reverb variants (FP32, FP16, INT8, INT4) from the configured environment directory, the legacy Windows folder and the ComfyUI models folder. Only variants with both weights/config and the required codec/tokenizer are shown. No downloads occur. Select `Use variant / custom path` to retain the previous `variant` and `models_directory` behavior. The new field is appended after existing widgets for compatibility. Restart ComfyUI and recreate the loader node if its dropdown does not appear; refresh the page after adding model files.
+
+**Português:** O node `Reverb | Load Model (Local)` agora tem o menu `installed_model`, que mostra as variantes instaladas localmente com os arquivos necessários. Exemplo: `Windows / fp32`. Se escolher `Use variant / custom path`, ele continua usando os controles antigos `variant` e `models_directory`. Não baixa pesos automaticamente. Reinicie o ComfyUI e recrie apenas o node de carregamento se o menu não aparecer. A interface ainda precisa ser validada em uma instalação real.
