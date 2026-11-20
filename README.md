@@ -4,7 +4,7 @@
 
 [🇧🇷 Português](#português) · [Original Reverb-TTS model](https://huggingface.co/software-mansion/Reverb-TTS) · [Workflows](./workflows)
 
-> **Experimental integration · v0.3.4.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
+> **Experimental integration · v0.3.5.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
 
 ## Features
 
@@ -79,7 +79,7 @@ C:\AI\ComfyUI-Data\models\reverb_tts\
 └── voices_custom\            (created automatically for custom .npz voices)
 ```
 
-The loader also supports a fallback under `ComfyUI/models/reverb_tts` **if the preferred directory does not exist**. In v0.3.2, the **Reverb | Load Model (Local)** node also accepts an optional `models_directory` field, and the `REVERB_TTS_MODELS_DIR` environment variable provides another option. The path must contain both `Reverb-TTS/` and `higgs-audio-v2-tokenizer/`. The example Windows directory remains the legacy default. This project does not use `diffusion_models`.
+The loader searches the existing Windows directory, `ComfyUI/models/reverb_tts`, and the directory specified by the `REVERB_TTS_MODELS_DIR` environment variable. Select the model from its dropdown. The root must contain both `Reverb-TTS/` and `higgs-audio-v2-tokenizer/`. This project does not use `diffusion_models`.
 
 Download these components:
 
@@ -245,3 +245,12 @@ O pacote `reverb-tts==1.0.0` pode produzir conflitos em instalações com outros
 **English:** `Reverb | Load Model (Local)` now includes the optional `installed_model` dropdown. It detects locally installed Reverb variants (FP32, FP16, INT8, INT4) from the configured environment directory, the legacy Windows folder and the ComfyUI models folder. Only variants with both weights/config and the required codec/tokenizer are shown. No downloads occur. Select `Use variant / custom path` to retain the previous `variant` and `models_directory` behavior. The new field is appended after existing widgets for compatibility. Restart ComfyUI and recreate the loader node if its dropdown does not appear; refresh the page after adding model files.
 
 **Português:** O node `Reverb | Load Model (Local)` agora tem o menu `installed_model`, que mostra as variantes instaladas localmente com os arquivos necessários. Exemplo: `Windows / fp32`. Se escolher `Use variant / custom path`, ele continua usando os controles antigos `variant` e `models_directory`. Não baixa pesos automaticamente. Reinicie o ComfyUI e recrie apenas o node de carregamento se o menu não aparecer. A interface ainda precisa ser validada em uma instalação real.
+
+
+## v0.3.5 — Simplified Load Model / Carregador simplificado
+
+**English:** The model loader now uses a single `model` dropdown listing only complete local model variants found in supported directories (for example `Auto / fp32`, `Windows / int8`). The redundant `variant` field and the per-node `models_directory` field were removed. `device` remains available, while `force_fp32_compute` is an **optional advanced** checkbox defaulting to `false`. An alternative models directory can still be configured globally using the `REVERB_TTS_MODELS_DIR` environment variable before launching ComfyUI. Model weights are never downloaded automatically.
+
+The six public workflow JSON files (01–05 and 07) were migrated to `Auto / fp32` and will work when an FP32 model is installed in one of the scanned folders. If only another precision is installed, select it from the dropdown. Existing saved workflows using the old loader widget layout should be reloaded using the updated examples or have the loader node replaced. **Restart ComfyUI** after updating and refresh to rescan model folders.
+
+**Português:** O node **Reverb | Load Model (Local)** tem agora um único menu `model`, com os modelos instalados detectados automaticamente. Os campos `variant` e `models_directory` foram retirados da interface. Permanecem `device` e a opção avançada `force_fp32_compute`, desativada por padrão. Para usar uma pasta personalizada, defina `REVERB_TTS_MODELS_DIR` antes de abrir o ComfyUI. Os seis workflows públicos (01–05 e 07) foram adaptados para `Auto / fp32`. Atualize os workflows e, se necessário, recrie o node carregador antigo. Nenhum modelo é baixado automaticamente.
