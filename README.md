@@ -137,7 +137,6 @@ Open a JSON from [`workflows/`](./workflows) in ComfyUI.
 | [03 — Create and Save Voice](./workflows/03-Criar-e-Salvar-Voz.json) | Reference audio + transcript → reusable `.npz` voice. |
 | [04 — Load Voice and Generate](./workflows/04-Carregar-Voz-Salva-e-Gerar-FP32.json) | Existing custom voice → WAV. |
 | [05 — Clone, Save and Generate](./workflows/05-Clonar-Salvar-e-Gerar-FP32.json) | One execution produces both a voice profile and speech WAV. |
-| [06 — Example Workflow](./workflows/06-Seu-Workflow-Corrigido.json) | Sample cloning workflow; **replace the example transcript and other text** before sharing outputs. |
 | [07 — Voice Library Selector](./workflows/07-Biblioteca-de-Vozes-Seletor.json) | Select a `.npz` from the library and synthesize speech. |
 
 **Suggested first test:** Workflow 02 with `pt_male_standard` and a short sentence. Then try Workflow 03 followed by 07. To refresh the saved voice list, reload the ComfyUI page or recreate the selector node.
@@ -210,7 +209,6 @@ Na v0.3.2, o node **Reverb | Load Model (Local)** aceita o campo opcional `model
 | 03 | Criar e salvar voz | Perfil de voz `.npz` |
 | 04 | Carregar voz e gerar | WAV a partir de perfil salvo |
 | 05 | Clonar, salvar e gerar | Perfil `.npz` + WAV |
-| 06 | Workflow de exemplo | Exemplo de clonagem com textos editáveis |
 | 07 | Biblioteca de vozes | Escolha a voz no menu e gere WAV |
 
 **Biblioteca de vozes:** `C:\AI\ComfyUI-Data\models\reverb_tts\voices_custom\`. Novas vozes podem exigir atualizar a página (F5) para aparecer no seletor.
