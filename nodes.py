@@ -1,4 +1,4 @@
-"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.5 — local weights, voice library and audio preview)."""
+"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.6 — local weights, voice library and audio preview)."""
 import os
 import re
 import gc
@@ -54,23 +54,23 @@ def _models_root(models_directory=""):
 
 
 def _installed_model_choices():
-    """Return a dropdown of complete, installed model variants (no downloads)."""
+    """Discover installed variants; avoid listing the same weights twice."""
     import folder_paths
     candidates = [
         ("Configured", os.environ.get(MODELS_DIR_ENV, "").strip()),
         ("Windows", str(PREFERRED_MODELS_DIR)),
         ("ComfyUI", str(Path(folder_paths.models_dir) / "reverb_tts")),
     ]
-    detected = {}
-    seen = set()
+    located = []
+    visited = set()
     for label, raw in candidates:
         if not raw:
             continue
         root = Path(os.path.expandvars(os.path.expanduser(raw))).resolve()
         key = str(root).casefold()
-        if key in seen:
+        if key in visited:
             continue
-        seen.add(key)
+        visited.add(key)
         for variant in VARIANTS:
             weights = root / "Reverb-TTS" / "model" / "safetensors" / variant
             codec = root / "higgs-audio-v2-tokenizer"
@@ -81,14 +81,20 @@ def _installed_model_choices():
                 codec / "model.safetensors",
                 codec / "config.json",
             )):
-                detected[f"{label} / {variant}"] = (str(root), variant)
-    # Auto is portable across users whose models are stored in different folders.
-    # Keep only *installed* precision variants; prefer FP32 if present.
+                located.append((label, str(root), variant))
+
+    # Keep stable 'Auto / fp32' labels used by existing public workflows.
+    # Offer an additional location-specific choice ONLY when the same
+    # variant truly exists in another distinct models directory.
+    choices = {}
     for variant in VARIANTS:
-        first = next((v for v in detected.values() if v[1] == variant), None)
-        if first is not None:
-            detected = {f"Auto / {variant}": first, **detected}
-    return detected
+        matches = [(label, root) for label, root, v in located if v == variant]
+        if not matches:
+            continue
+        choices[f"Auto / {variant}"] = (matches[0][1], variant)
+        for label, root in matches[1:]:
+            choices[f"{label} / {variant}"] = (root, variant)
+    return choices
 
 
 def _validate_local_files(root, variant):
