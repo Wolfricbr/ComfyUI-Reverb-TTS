@@ -1,4 +1,4 @@
-"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.4 — local weights, voice library and audio preview)."""
+"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.5 — local weights, voice library and audio preview)."""
 import os
 import re
 import gc
@@ -54,22 +54,23 @@ def _models_root(models_directory=""):
 
 
 def _installed_model_choices():
-    """Discover *complete* local Reverb weight variants, never download."""
+    """Return a dropdown of complete, installed model variants (no downloads)."""
     import folder_paths
     candidates = [
         ("Configured", os.environ.get(MODELS_DIR_ENV, "").strip()),
         ("Windows", str(PREFERRED_MODELS_DIR)),
         ("ComfyUI", str(Path(folder_paths.models_dir) / "reverb_tts")),
     ]
-    choices = {"Use variant / custom path": None}
-    visited = set()
+    detected = {}
+    seen = set()
     for label, raw in candidates:
         if not raw:
             continue
         root = Path(os.path.expandvars(os.path.expanduser(raw))).resolve()
-        if str(root).lower() in visited:
+        key = str(root).casefold()
+        if key in seen:
             continue
-        visited.add(str(root).lower())
+        seen.add(key)
         for variant in VARIANTS:
             weights = root / "Reverb-TTS" / "model" / "safetensors" / variant
             codec = root / "higgs-audio-v2-tokenizer"
@@ -80,8 +81,14 @@ def _installed_model_choices():
                 codec / "model.safetensors",
                 codec / "config.json",
             )):
-                choices[f"{label} / {variant}"] = (str(root), variant)
-    return choices
+                detected[f"{label} / {variant}"] = (str(root), variant)
+    # Auto is portable across users whose models are stored in different folders.
+    # Keep only *installed* precision variants; prefer FP32 if present.
+    for variant in VARIANTS:
+        first = next((v for v in detected.values() if v[1] == variant), None)
+        if first is not None:
+            detected = {f"Auto / {variant}": first, **detected}
+    return detected
 
 
 def _validate_local_files(root, variant):
@@ -184,31 +191,39 @@ def _safe_stem(name):
 class ReverbLoadModel:
     @classmethod
     def INPUT_TYPES(cls):
-        return {'required': {
-            'variant': (list(VARIANTS), {'default': 'fp32'}),
-            'device': (['auto', 'cuda', 'cpu'], {'default': 'auto'}),
-            'force_fp32_compute': ('BOOLEAN', {'default': True}),
-        }, 'optional': {
-            'models_directory': ('STRING', {'default': '', 'multiline': False,
-                'tooltip': 'Optional local folder containing Reverb-TTS and higgs-audio-v2-tokenizer. Used when installed_model is set to Use variant / custom path.'}),
-            'installed_model': (list(_installed_model_choices()), {
-                'default': 'Use variant / custom path',
-                'tooltip': 'Choose a detected local model, or keep the legacy variant and models_directory settings. Refresh ComfyUI to rescan.'}),
-        }}
+        models = _installed_model_choices()
+        names = list(models) if models else ["No installed models found"]
+        default = "Auto / fp32" if "Auto / fp32" in models else names[0]
+        return {
+            'required': {
+                'model': (names, {
+                    'default': default,
+                    'tooltip': 'Choose a locally installed Reverb-TTS model. No downloads are performed.',
+                }),
+                'device': (['auto', 'cuda', 'cpu'], {'default': 'auto'}),
+            },
+            'optional': {
+                'force_fp32_compute': ('BOOLEAN', {
+                    'default': False,
+                    'tooltip': 'Advanced: request FP32 computation regardless of weight quantization. Usually leave disabled.',
+                }),
+            },
+        }
+
     RETURN_TYPES = ('REVERB_TTS_MODEL',)
     RETURN_NAMES = ('model',)
     FUNCTION = 'run'
     CATEGORY = 'audio/Reverb TTS'
 
-    def run(self, variant, device, force_fp32_compute, models_directory="", installed_model="Use variant / custom path"):
-        if installed_model != "Use variant / custom path":
-            choices = _installed_model_choices()
-            if installed_model not in choices:
-                raise FileNotFoundError(
-                    f"Reverb-TTS model '{installed_model}' no longer exists. "
-                    "Refresh ComfyUI and choose an installed model."
-                )
-            models_directory, variant = choices[installed_model]
+    def run(self, model, device, force_fp32_compute=False):
+        models = _installed_model_choices()
+        if model not in models:
+            raise FileNotFoundError(
+                f"Reverb-TTS: selected model {model!r} is not installed. "
+                "Install the model and Higgs codec locally, then restart or refresh ComfyUI. "
+                "To use a different folder, set REVERB_TTS_MODELS_DIR before starting ComfyUI."
+            )
+        models_directory, variant = models[model]
         return (_get_model(variant, device, force_fp32_compute, models_directory),)
 
 
