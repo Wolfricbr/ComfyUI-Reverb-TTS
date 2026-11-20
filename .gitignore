@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.env
+
+# Models and voice profiles
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.npz
+
+# Generated audio
+*.wav
+*.mp3
+*.flac
+*.ogg
+
+# Local files and caches
+.cache/
+models/
+output/
+voices_custom/
+*.log
+
+# Windows
+Thumbs.db
+desktop.ini
