@@ -31,10 +31,15 @@
         "Node name for S&R": "ReverbLoadModel"
       },
       "widgets_values": [
-        "fp32",
+        "Auto / fp32",
         "auto",
-        true
-      ]
+        false
+      ],
+      "widgets_values_named": {
+        "model": "Auto / fp32",
+        "device": "auto",
+        "force_fp32_compute": false
+      }
     },
     {
       "id": 2,
