@@ -4,7 +4,7 @@
 
 [🇧🇷 Português](#português) · [Original Reverb-TTS model](https://huggingface.co/software-mansion/Reverb-TTS) · [Workflows](./workflows)
 
-> **Experimental integration · v0.3.2.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
+> **Experimental integration · v0.3.3.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
 
 ## Features
 
@@ -231,3 +231,12 @@ Na v0.3.2, o node **Reverb | Load Model (Local)** aceita o campo opcional `model
 The package `reverb-tts==1.0.0` can introduce conflicting dependency requirements in an existing ComfyUI installation. Run `python -m pip install --dry-run -r requirements.txt` before installation, and `python -m pip check` afterwards. Do not assume all custom nodes will remain compatible. No dependency upgrades are required solely to pull this v0.3.2 code change.
 
 O pacote `reverb-tts==1.0.0` pode produzir conflitos em instalações com outros custom nodes. Verifique o `--dry-run` antes de instalar e execute `pip check` depois. Não é necessário reinstalar dependências apenas para atualizar o código desta versão.
+
+
+## v0.3.3 — Native inline WAV player / Player WAV integrado
+
+**Fix:** The `Reverb | Save WAV` node now explicitly declares ComfyUI's `AUDIO_UI` widget so the frontend creates the **native inline audio player**. The output still returns `ui.audio` metadata, retains the `saved_path` output and saves lossless WAV in the chosen subtype. A frontend widget was missing before, so returning `ui.audio` alone did not produce a preview.
+
+**After updating:** completely restart ComfyUI, refresh the browser, **remove the old Save WAV node and add a fresh `Reverb | Save WAV`** if the player does not immediately appear, reconnect its audio input, then run the workflow. The player is populated **after a new execution**; previously generated audio does not automatically reappear. No extra Python dependencies or model downloads are needed. This change is based on ComfyUI's built-in `AUDIO_UI` widget interface; actual frontend behavior should still be confirmed on the user's installation.
+
+**Português:** O node `Reverb | Save WAV` passa a declarar `AUDIO_UI`, necessário para renderizar o player nativo no frontend. Reinicie o ComfyUI, atualize a página e, se necessário, **apague apenas o node antigo de salvamento, adicione o novo e reconecte a entrada `audio`**. Execute novamente para preencher o player. Não é necessário baixar pesos nem reinstalar bibliotecas. A interface precisa ser verificada no ComfyUI real.
