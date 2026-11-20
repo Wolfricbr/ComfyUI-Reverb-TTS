@@ -1,4 +1,4 @@
-"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.1 — local weights, voice library and audio preview)."""
+"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.2 — local weights, voice library and audio preview)."""
 import os
 import re
 import gc
