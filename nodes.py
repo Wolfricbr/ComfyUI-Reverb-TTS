@@ -1,4 +1,4 @@
-"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.2 — local weights, voice library and audio preview)."""
+"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.3 — local weights, voice library and audio preview)."""
 import os
 import re
 import gc
@@ -328,6 +328,10 @@ class ReverbSaveWav:
             'audio': ('AUDIO',),
             'filename_prefix': ('STRING', {'default': 'Reverb/narracao'}),
             'subtype': (['PCM_24', 'PCM_16', 'FLOAT'], {'default': 'PCM_24'}),
+            # The ComfyUI frontend's built-in AudioWidget extension recognizes
+            # AUDIO_UI and creates its native inline HTML audio player. The
+            # ui.audio payload below then populates it after execution.
+            'audioUI': ('AUDIO_UI', {}),
         }}
     RETURN_TYPES = ('STRING',)
     RETURN_NAMES = ('saved_path',)
