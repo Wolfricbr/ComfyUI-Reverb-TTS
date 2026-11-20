@@ -28,15 +28,28 @@ def _lib():
 # Pasta escolhida pelo usuario para nao misturar TTS com diffusion_models.
 # Compatibilidade: fallback para modelos em ComfyUI/models/reverb_tts.
 PREFERRED_MODELS_DIR = Path(r"C:\AI\ComfyUI-Data\models\reverb_tts")
+MODELS_DIR_ENV = "REVERB_TTS_MODELS_DIR"
 
 
-def _models_root():
+def _models_root(models_directory=""):
+    """Resolve models without downloading weights.
+
+    Priority: explicit loader path > environment variable > existing legacy
+    Windows directory > ComfyUI's configured models directory.
+    """
     import folder_paths
-    preferred = PREFERRED_MODELS_DIR
-    if preferred.is_dir():
-        return preferred.resolve()
-    fallback = Path(folder_paths.models_dir) / 'reverb_tts'
-    return fallback.resolve()
+    raw = str(models_directory or "").strip() or os.environ.get(MODELS_DIR_ENV, "").strip()
+    if raw:
+        selected = Path(os.path.expandvars(os.path.expanduser(raw))).resolve()
+        if not selected.is_dir():
+            raise FileNotFoundError(
+                f"Reverb-TTS models directory does not exist: {selected}. "
+                "Create it and install the weights manually."
+            )
+        return selected
+    if PREFERRED_MODELS_DIR.is_dir():
+        return PREFERRED_MODELS_DIR.resolve()
+    return (Path(folder_paths.models_dir) / "reverb_tts").resolve()
 
 
 def _validate_local_files(root, variant):
@@ -58,10 +71,10 @@ def _validate_local_files(root, variant):
     return root / 'Reverb-TTS', codec
 
 
-def _get_model(variant, device, true_fp32):
+def _get_model(variant, device, true_fp32, models_directory=""):
     import torch
     # Valida ANTES de importar o pacote ou chamar de pretrained, sem qualquer download.
-    root = _models_root()
+    root = _models_root(models_directory)
     model_path, codec_path = _validate_local_files(root, variant)
     TTS, _ = _lib()
     dev = ('cuda' if torch.cuda.is_available() else 'cpu') if device == 'auto' else device
@@ -143,14 +156,17 @@ class ReverbLoadModel:
             'variant': (list(VARIANTS), {'default': 'fp32'}),
             'device': (['auto', 'cuda', 'cpu'], {'default': 'auto'}),
             'force_fp32_compute': ('BOOLEAN', {'default': True}),
+        }, 'optional': {
+            'models_directory': ('STRING', {'default': '', 'multiline': False,
+                'tooltip': 'Optional local folder containing Reverb-TTS and higgs-audio-v2-tokenizer. Blank uses REVERB_TTS_MODELS_DIR or standard folders.'}),
         }}
     RETURN_TYPES = ('REVERB_TTS_MODEL',)
     RETURN_NAMES = ('model',)
     FUNCTION = 'run'
     CATEGORY = 'audio/Reverb TTS'
 
-    def run(self, variant, device, force_fp32_compute):
-        return (_get_model(variant, device, force_fp32_compute),)
+    def run(self, variant, device, force_fp32_compute, models_directory=""):
+        return (_get_model(variant, device, force_fp32_compute, models_directory),)
 
 
 class ReverbVoiceFromAudio:
