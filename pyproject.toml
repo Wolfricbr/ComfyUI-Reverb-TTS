@@ -1,5 +1,5 @@
 [project]
-name = "reverb-tts"
+name = "comfyui-reverb-tts"
 version = "0.3.1"
 description = "Local Reverb-TTS speech synthesis, voice cloning, reusable voice profiles, and WAV export nodes for ComfyUI"
 license = { file = "LICENSE" }
@@ -14,5 +14,5 @@ Documentation = "https://github.com/Wolfricbr/ComfyUI-Reverb-TTS#readme"
 "Bug Tracker" = "https://github.com/Wolfricbr/ComfyUI-Reverb-TTS/issues"
 
 [tool.comfy]
-PublisherId = "wolfricbr"
+PublisherId = "flaviolomeu"
 DisplayName = "ComfyUI-Reverb-TTS"
