@@ -189,11 +189,11 @@ class ReverbLoadModel:
             'device': (['auto', 'cuda', 'cpu'], {'default': 'auto'}),
             'force_fp32_compute': ('BOOLEAN', {'default': True}),
         }, 'optional': {
+            'models_directory': ('STRING', {'default': '', 'multiline': False,
+                'tooltip': 'Optional local folder containing Reverb-TTS and higgs-audio-v2-tokenizer. Used when installed_model is set to Use variant / custom path.'}),
             'installed_model': (list(_installed_model_choices()), {
                 'default': 'Use variant / custom path',
                 'tooltip': 'Choose a detected local model, or keep the legacy variant and models_directory settings. Refresh ComfyUI to rescan.'}),
-            'models_directory': ('STRING', {'default': '', 'multiline': False,
-                'tooltip': 'Optional local folder containing Reverb-TTS and higgs-audio-v2-tokenizer. Used when installed_model is set to Use variant / custom path.'}),
         }}
     RETURN_TYPES = ('REVERB_TTS_MODEL',)
     RETURN_NAMES = ('model',)
