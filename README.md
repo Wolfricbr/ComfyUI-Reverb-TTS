@@ -1,121 +1,218 @@
-# ComfyUI-Reverb-TTS v0.3.0 — somente arquivos locais
+# ComfyUI-Reverb-TTS
 
-Integração experimental com o [Reverb-TTS](https://github.com/software-mansion-labs/Reverb-TTS), com carregamento manual dos modelos, clonagem de voz, vozes predefinidas, perfis `.npz` e WAV PCM.
+**Local speech synthesis, voice cloning, reusable voice profiles, and WAV export for ComfyUI.**
 
-**NÃO baixa modelos automaticamente.** O carregador valida os arquivos antes de tentar inferência. A API oficial suporta `TTS.from_pretrained(pasta_local, codec=pasta_local)`.
+[🇧🇷 Português](#português) · [Original Reverb-TTS model](https://huggingface.co/software-mansion/Reverb-TTS) · [Workflows](./workflows)
 
-## 1. Pastas dos modelos (NÃO é diffusion_models)
+> **Experimental integration · v0.3.1.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
 
-Crie `C:\AI\ComfyUI-Data\models\reverb_tts\` e mantenha a estrutura:
+## Features
 
-```text
-C:\AI\ComfyUI-Data\models\reverb_tts\
-  Reverb-TTS\
-    model\
-      tokenizer.json
-      tokenizer_config.json         (recomendado)
-      chat_template.jinja           (recomendado)
-      safetensors\
-        fp32\
-          config.json
-          model.safetensors
-        fp16\                 (opcional)
-          config.json
-          model.safetensors
-        int8\                 (opcional)
-          config.json
-          model.safetensors
-        int4\                 (opcional)
-          config.json
-          model.safetensors
-    voices\                  (opcional; obrigatoria para vozes predefinidas offline)
-      pt_male_standard.json
-      ...
-  higgs-audio-v2-tokenizer\
-    config.json
-    model.safetensors
-    preprocessor_config.json        (recomendado)
+- Local loading of Reverb-TTS **FP32, FP16, INT8, and INT4** weight variants.
+- Zero-shot voice cloning from a short audio clip **and its exact transcript**.
+- Official preset voices using locally installed JSON files.
+- Save/load reusable custom voice profiles in **`.npz`** format.
+- Select saved profiles from a voice-library dropdown.
+- Text-to-speech generation with language, seed, speed and steps controls.
+- Lossless WAV export (PCM 24-bit, PCM 16-bit, or float), with an audio player in the ComfyUI node.
+- Clear the cached TTS model from memory.
+
+**Important:** `.npz` voice profiles are specific to the Reverb-TTS `Voice` serialization. They are not interchangeable with Fish Audio Drama 3 `.safetensors` voice files or other TTS models.
+
+## Requirements
+
+- ComfyUI with Python compatible with the official `reverb-tts==1.0.0` package.
+- A supported PyTorch environment; CUDA GPU recommended.
+- Manually downloaded Reverb-TTS weights and **Higgs Audio V2 tokenizer/codec** weights.
+- A reference recording and matching transcript for cloning.
+
+> **Dependency warning:** `reverb-tts` can change shared Python dependencies. In one Windows ComfyUI environment, installing it introduced a `huggingface-hub 2.x` versus `diffusers 0.37.1` version conflict. Check planned package changes before installing. An import succeeding does not guarantee every other custom node will remain compatible.
+
+## Installation
+
+Clone into `ComfyUI/custom_nodes`:
+
+```bat
+cd /d C:\AI\ComfyUI\ComfyUI\custom_nodes
+git clone https://github.com/Wolfricbr/ComfyUI-Reverb-TTS.git
 ```
 
-Os caminhos são validados. **Não basta copiar o `.safetensors` sozinho**: cada variante também precisa do seu `config.json`, e o `tokenizer.json` fica em `Reverb-TTS/model/`. O codec é um segundo modelo, distinto do TTS.
-
-### Downloads manuais
-
-1. Escolha FP32 em https://huggingface.co/software-mansion/Reverb-TTS/tree/main/model/safetensors/fp32 ; baixe **`config.json` e `model.safetensors`** para `Reverb-TTS/model/safetensors/fp32/`.
-2. Baixe `tokenizer.json`, `tokenizer_config.json` e `chat_template.jinja` de https://huggingface.co/software-mansion/Reverb-TTS/tree/main/model e coloque em `Reverb-TTS/model/`.
-3. Baixe `config.json`, `model.safetensors`, `preprocessor_config.json` de https://huggingface.co/eustlb/higgs-audio-v2-tokenizer/tree/main para `higgs-audio-v2-tokenizer/`.
-4. Se for usar presets, baixe os `.json` desejados de https://huggingface.co/software-mansion/Reverb-TTS/tree/main/voices para `Reverb-TTS/voices/`.
-5. Para FP16 e INT8, baixe ambos os arquivos da variante respectiva em `model/safetensors/fp16/` ou `/int8/`. Troque `variant` no loader; não precisa refazer o workflow.
-
-As pastas são deliberadamente fora de `diffusion_models` (Reverb é TTS, não modelo de difusão de imagem). Se a pasta personalizada acima ainda não existir, há fallback para `ComfyUI/models/reverb_tts`; **preferência sempre pelo caminho `C:\AI\ComfyUI-Data\models\reverb_tts`**.
-
-**Atenção ao modo totalmente offline:** instalar o pacote Python (`reverb-tts`) é uma operação separada, e o carregamento pode requerer módulos Python já presentes; para modelos, ambos os caminhos passados ao carregador são locais e presets requerem JSONs locais. Nenhum peso é incluído neste pacote.
-
-## 2. Erro identificado no seu log
-
-O erro atual é `ModuleNotFoundError: No module named 'reverb_tts'`. Instale as dependências **no Python embarcado do ComfyUI**. Antes, confira alterações de dependências, pois você já tem vários custom nodes:
+For a **Windows portable ComfyUI** installation, preview the dependency changes first:
 
 ```bat
 C:\AI\ComfyUI\python_embeded\python.exe -m pip install --dry-run -r C:\AI\ComfyUI\ComfyUI\custom_nodes\ComfyUI-Reverb-TTS\requirements.txt
 ```
 
-Se aceitáveis:
+If compatible with your environment, install and verify:
 
 ```bat
 C:\AI\ComfyUI\python_embeded\python.exe -m pip install -r C:\AI\ComfyUI\ComfyUI\custom_nodes\ComfyUI-Reverb-TTS\requirements.txt
+C:\AI\ComfyUI\python_embeded\python.exe -c "from reverb_tts import TTS, Voice; print('Reverb-TTS import OK')"
 ```
 
-Verifique:
+These paths are **examples** for a portable Windows installation. Use your actual ComfyUI Python executable if installed elsewhere. Restart ComfyUI after installing.
+
+## Download the models manually
+
+**The node does not download weights automatically.** By default, this version prefers the Windows path:
+
+```text
+C:\AI\ComfyUI-Data\models\reverb_tts\
+├── Reverb-TTS\
+│   ├── model\
+│   │   ├── tokenizer.json
+│   │   ├── tokenizer_config.json
+│   │   ├── chat_template.jinja
+│   │   └── safetensors\
+│   │       ├── fp32\
+│   │       │   ├── config.json
+│   │       │   └── model.safetensors
+│   │       ├── fp16\          (optional)
+│   │       ├── int8\          (optional)
+│   │       └── int4\          (optional)
+│   └── voices\               (optional for voice cloning)
+│       └── pt_male_standard.json
+├── higgs-audio-v2-tokenizer\
+│   ├── config.json
+│   ├── model.safetensors
+│   └── preprocessor_config.json
+└── voices_custom\            (created automatically for custom .npz voices)
+```
+
+The loader also supports a fallback under `ComfyUI/models/reverb_tts` **if the preferred directory does not exist**. The preferred directory is currently **hard-coded to the path above**, so installations using other locations should use the fallback or adjust the code. This project does not use `diffusion_models`.
+
+Download these components:
+
+1. [Reverb-TTS FP32 weights](https://huggingface.co/software-mansion/Reverb-TTS/tree/main/model/safetensors/fp32): `config.json` and `model.safetensors`.
+2. [Reverb tokenizer files](https://huggingface.co/software-mansion/Reverb-TTS/tree/main/model): `tokenizer.json`, `tokenizer_config.json`, `chat_template.jinja`.
+3. [Higgs Audio V2 tokenizer/codec](https://huggingface.co/eustlb/higgs-audio-v2-tokenizer/tree/main): `config.json`, `model.safetensors`, `preprocessor_config.json`.
+4. Optional [preset voice JSONs](https://huggingface.co/software-mansion/Reverb-TTS/tree/main/voices).
+5. Optional FP16, INT8 or INT4 weights from their respective `model/safetensors/` folders, with each variant's `config.json`.
+
+For example, to download the FP32 model, common tokenizer files, and preset voices **to your local folders** using Hugging Face Hub:
 
 ```bat
-C:\AI\ComfyUI\python_embeded\python.exe -c "from reverb_tts import TTS, Voice; print('Reverb instalado')"
+C:\AI\ComfyUI\python_embeded\python.exe -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='software-mansion/Reverb-TTS', local_dir=r'C:\AI\ComfyUI-Data\models\reverb_tts\Reverb-TTS', allow_patterns=['model/tokenizer.json', 'model/tokenizer_config.json', 'model/chat_template.jinja', 'model/safetensors/fp32/*', 'voices/*.json'])"
 ```
 
-Instalar os pesos sem instalar a biblioteca Python **não elimina** esse erro.
+The separate codec must also be downloaded:
 
-## 3. Instalar o node e workflows
+```bat
+C:\AI\ComfyUI\python_embeded\python.exe -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='eustlb/higgs-audio-v2-tokenizer', local_dir=r'C:\AI\ComfyUI-Data\models\reverb_tts\higgs-audio-v2-tokenizer', allow_patterns=['config.json', 'model.safetensors', 'preprocessor_config.json'])"
+```
 
-Extraia/atualize `ComfyUI-Reverb-TTS` em `C:\AI\ComfyUI\ComfyUI\custom_nodes\ComfyUI-Reverb-TTS\` (substitua `nodes.py`, `README.md` etc). Reinicie o ComfyUI. Arraste os `.json` para o editor ou copie-os à sua pasta normal de workflows.
+These commands are **one-time manual setup steps**, not automatic runtime downloads.
 
-- `01-Clonar-e-Gerar-FP32.json`: gravar e narrar com a voz clonada.
-- `02-Voz-Predefinida-FP32.json`: usar JSON local de preset.
-- `03-Criar-e-Salvar-Voz.json`: `.npz` reutilizável de voz, sem gerar narração.
-- `04-Carregar-Voz-Salva-e-Gerar-FP32.json`: `.npz` salvo → WAV.
-- `05-Clonar-Salvar-e-Gerar-FP32.json`: clonagem + salva `.npz` + narração.
-- `06-Seu-Workflow-Corrigido.json`: seu workflow anexado, com `speed` e `steps` corrigidos no JSON.
+## Available nodes
 
-## 4. Velocidade e precisão
+| Node | Function |
+|---|---|
+| **Reverb · Load Model (Local)** | Load locally installed FP32/FP16/INT8/INT4 weights and select CPU/CUDA. |
+| **Reverb · Clone Voice from Audio** | Build a voice from an audio reference and matching transcript. |
+| **Reverb · Preset Voice** | Select a locally installed official voice preset by name. |
+| **Reverb · Save Voice (.npz)** | Save a reusable custom voice profile. |
+| **Reverb · Load Voice by Name (.npz)** | Load an existing custom voice profile by file stem. |
+| **Reverb · Voice Library (NPZ Selector)** | Pick a saved voice from a dropdown. |
+| **Reverb · Generate Speech** | Generate AUDIO from text and a voice. |
+| **Reverb · Save WAV** | Save a WAV and display an audio preview/player after execution. |
+| **Reverb · Clear Model Cache** | Release cached model references and request CUDA cache cleanup. |
 
-`speed` vai de **0.5 a 2.0** (passo 0.05). O parâmetro `steps` é independente (padrão 8). O erro `Value 8.0 bigger than max of 2.0: speed` no seu log surgiu de um valor `8` deslocado no JSON antigo: `widgets_values` tinha um item extra de controle da seed. Os JSONs deste pacote foram corrigidos; não use o workflow antigo sem migrá-lo. Para comparar precisões, selecione `fp32`, `fp16`, `int8` ou `int4` no loader depois de instalar as respectivas pastas. `force_fp32_compute` controla o dtype de execução, não a escolha dos pesos.
+### Generation settings
 
-## 5. Limitações
+- `language`: `pt`, `en`, `es`, `fr`, `de`, `it`, `pl`
+- `speed`: **0.5–2.0**, step 0.05
+- `steps`: default 8 (separate from speed)
+- `seed`: default 42
+- `variant`: `fp32`, `fp16`, `int8`, `int4`
+- `force_fp32_compute`: changes compute dtype; **does not** change the weight variant
 
-Testado: compilação Python, inspeção estática do carregamento local e integridade dos workflows. **Ainda não testado com os pesos reais na sua RTX 4060 Ti**. O usuário deve instalar as dependências separadamente. Pesos do modelo: **CC BY-NC 4.0 (uso não comercial com atribuição)**. Código oficial Apache 2.0. Use vozes somente com autorização do locutor.
+## Example workflows
 
+Open a JSON from [`workflows/`](./workflows) in ComfyUI.
 
-## 6. Biblioteca de vozes NPZ (v0.3.0)
+| Workflow | What it does |
+|---|---|
+| [01 — Clone and Generate](./workflows/01-Clonar-e-Gerar-FP32.json) | Reference audio + transcript → cloned speech WAV. |
+| [02 — Preset Voice](./workflows/02-Voz-Predefinida-FP32.json) | Official local preset + text → WAV. |
+| [03 — Create and Save Voice](./workflows/03-Criar-e-Salvar-Voz.json) | Reference audio + transcript → reusable `.npz` voice. |
+| [04 — Load Voice and Generate](./workflows/04-Carregar-Voz-Salva-e-Gerar-FP32.json) | Existing custom voice → WAV. |
+| [05 — Clone, Save and Generate](./workflows/05-Clonar-Salvar-e-Gerar-FP32.json) | One execution produces both a voice profile and speech WAV. |
+| [06 — Example Workflow](./workflows/06-Seu-Workflow-Corrigido.json) | Sample cloning workflow; **replace the example transcript and other text** before sharing outputs. |
+| [07 — Voice Library Selector](./workflows/07-Biblioteca-de-Vozes-Seletor.json) | Select a `.npz` from the library and synthesize speech. |
 
-Os novos perfis sao salvos diretamente em:
+**Suggested first test:** Workflow 02 with `pt_male_standard` and a short sentence. Then try Workflow 03 followed by 07. To refresh the saved voice list, reload the ComfyUI page or recreate the selector node.
+
+### Voice library
+
+Custom profiles are stored in:
 
 ```text
 C:\AI\ComfyUI-Data\models\reverb_tts\voices_custom\
-  minha_voz.npz
-  narrador_01.npz
 ```
 
-- `Reverb | Save Voice (.npz)` cria um perfil usando a voz obtida do audio de referencia. `overwrite=false` evita sobrescrever um perfil existente.
-- **`Reverb | Voice Library (NPZ Selector)`** mostra a lista de arquivos `.npz` da biblioteca e entrega uma saída `REVERB_VOICE` para o gerador. **Depois de salvar uma nova voz, atualize a pagina do ComfyUI (F5) ou recrie o node seletor para atualizar a lista**. A busca nao precisa de um carregamento de modelo TTS.
-- `Reverb | Load Voice by Name (.npz)` continua disponivel para compatibilidade com workflows antigos; digite apenas o nome, sem extensao.
-- Para trazer perfis da pasta antiga `ComfyUI/output/Reverb/voices/`, execute opcionalmente `migrar_vozes_antigas.bat`. Os arquivos antigos nao sao apagados; arquivos existentes no destino nao sao substituidos.
-- As vozes `.npz` sao especificas da API `reverb_tts.Voice`; arquivos de outros TTS nao sao compativeis automaticamente. O formato de serializacao e carregamento precisa ser validado com a versao instalada da biblioteca.
+Use `Reverb | Save Voice (.npz)` to create them. Existing files are not overwritten unless `overwrite` is enabled. The optional `migrar_vozes_antigas.bat` copies profiles from an older output location without deleting the originals.
 
-### Workflows
+## Troubleshooting
 
-`03-Criar-e-Salvar-Voz.json` e `05-Clonar-Salvar-e-Gerar-FP32.json` agora salvam na biblioteca central sem mudancas nos seus links. `04-Carregar-Voz-Salva-e-Gerar-FP32.json` foi readaptado para usar o menu de selecao. Novo `07-Biblioteca-de-Vozes-Seletor.json` e um modelo minimo com seletor + geracao + WAV. Os workflows 01, 02 e 06 continuam operando independentemente da biblioteca.
+**`No module named 'reverb_tts'`** — install the Python package in the **same interpreter** used by ComfyUI.
 
-**Limites de validacao:** houve verificacao sintatica e estrutural local; ainda nao foi executada inferencia real nem o carregamento de um perfil NPZ real nesta maquina. Instale a biblioteca `reverb-tts` no Python usado pelo ComfyUI para testar.
+**Missing model files** — check both the Reverb variant folder **and** the Higgs codec folder. A `.safetensors` file by itself is not sufficient.
 
+**`speed` greater than 2** — use the current workflows; older JSONs may have shifted widget values.
 
-## v0.3.1 — Preview integrado no Reverb | Save WAV
+**No voice in the selector** — save a `.npz` in `voices_custom` and refresh the frontend.
 
-O node `Reverb | Save WAV` agora mostra um player de áudio diretamente no canvas após executar, usando o padrão de UI de áudio do ComfyUI. Mantém WAV `PCM_24`, `PCM_16` ou `FLOAT` e a saída `saved_path` (STRING) para preservar conexões existentes. O player aparece depois de uma nova execução; não é necessário modificar nenhum workflow existente.
+**Dependency conflicts** — run `python -m pip check` using ComfyUI's interpreter. Resolve incompatible dependency requirements carefully; do not indiscriminately upgrade or downgrade packages.
+
+## License and responsible use
+
+This repository contains community integration code and example workflows; **no model weights are distributed here**. The [upstream Reverb-TTS project](https://huggingface.co/software-mansion/Reverb-TTS) has its own licenses. At the time of writing, the **Reverb-TTS model weights are licensed CC BY-NC 4.0 (non-commercial)**, while upstream code licensing is separate. The present repository **does not yet declare a license for its integration code**; do not infer that the model weights' license applies to this repository's code.
+
+Use reference voices only with appropriate consent or authorization, and review the upstream licenses before commercial use.
+
+---
+
+<a id="português"></a>
+## 🇧🇷 Português
+
+**ComfyUI-Reverb-TTS** é uma integração experimental do Reverb-TTS ao ComfyUI, com geração de voz local, clonagem por referência, perfis de voz reutilizáveis em `.npz` e exportação WAV com player integrado.
+
+### Recursos principais
+
+- Carregamento **local**, sem download automático, das variantes FP32, FP16, INT8 e INT4.
+- Clonagem de voz a partir de áudio e **transcrição exata**.
+- Vozes oficiais predefinidas armazenadas em JSON.
+- Biblioteca de vozes clonadas `.npz` com seletor.
+- Geração de fala em português (`pt`) e outros idiomas.
+- WAV PCM 24-bit, PCM 16-bit ou float, com prévia dentro do node.
+
+### Instalação rápida
+
+1. Clone o repositório dentro de `ComfyUI/custom_nodes/`.
+2. Instale `requirements.txt` **no Python que executa seu ComfyUI**, após conferir conflitos de dependências com `--dry-run`.
+3. Baixe manualmente os pesos do Reverb, o tokenizer e o codec Higgs para a estrutura explicada acima.
+4. Reinicie o ComfyUI e abra um dos sete workflows.
+
+**Pasta principal configurada nesta versão para Windows:**
+
+```text
+C:\AI\ComfyUI-Data\models\reverb_tts\
+```
+
+Se ela não existir, o código procura `ComfyUI/models/reverb_tts`. Para outros caminhos personalizados, ajuste o código.
+
+### Para que serve cada workflow?
+
+| Nº | Workflow | Resultado |
+|---|---|---|
+| 01 | Clonar e gerar | Áudio WAV com voz clonada |
+| 02 | Voz predefinida | Narração com voz oficial |
+| 03 | Criar e salvar voz | Perfil de voz `.npz` |
+| 04 | Carregar voz e gerar | WAV a partir de perfil salvo |
+| 05 | Clonar, salvar e gerar | Perfil `.npz` + WAV |
+| 06 | Workflow de exemplo | Exemplo de clonagem com textos editáveis |
+| 07 | Biblioteca de vozes | Escolha a voz no menu e gere WAV |
+
+**Biblioteca de vozes:** `C:\AI\ComfyUI-Data\models\reverb_tts\voices_custom\`. Novas vozes podem exigir atualizar a página (F5) para aparecer no seletor.
+
+**Atenção:** a integração ainda é experimental. Os testes relatados anteriormente foram de estrutura e código; a geração real e a compatibilidade com todos os ambientes precisam ser validadas. Os pesos Reverb-TTS são **CC BY-NC 4.0**, com restrições a uso comercial. Use vozes de outras pessoas somente com autorização.
