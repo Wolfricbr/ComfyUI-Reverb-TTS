@@ -339,7 +339,7 @@ class ReverbSaveWav:
     CATEGORY = 'audio/Reverb TTS'
     OUTPUT_NODE = True
 
-    def run(self, audio, filename_prefix, subtype):
+    def run(self, audio, filename_prefix, subtype, audioUI=None):
         import folder_paths
         samples, sr = _comfy_audio_to_numpy(audio)
         base = Path(folder_paths.get_output_directory()).resolve()
