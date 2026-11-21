@@ -1,7 +1,6 @@
 """ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.8 — local weights, voice library and audio preview)."""
 import os
 import re
-import gc
 from pathlib import Path
 import threading
 
@@ -464,28 +463,6 @@ class ReverbSaveWav:
         }
 
 
-class ReverbUnload:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {'required': {'unload': ('BOOLEAN', {'default': True})}}
-    RETURN_TYPES = ('STRING',)
-    FUNCTION = 'run'
-    CATEGORY = 'audio/Reverb TTS'
-    OUTPUT_NODE = True
-
-    def run(self, unload):
-        if unload:
-            with _LOCK:
-                _MODEL_CACHE.clear()
-            gc.collect()
-            try:
-                import torch
-                if torch.cuda.is_available():
-                    torch.cuda.empty_cache()
-            except ImportError:
-                pass
-        return ('Model cache cleared' if unload else 'No action',)
-
 
 NODE_CLASS_MAPPINGS = {
     'ReverbLoadModel': ReverbLoadModel,
@@ -496,7 +473,6 @@ NODE_CLASS_MAPPINGS = {
     'ReverbLibraryVoice': ReverbLibraryVoice,
     'ReverbGenerate': ReverbGenerate,
     'ReverbSaveWav': ReverbSaveWav,
-    'ReverbUnload': ReverbUnload,
 }
 NODE_DISPLAY_NAME_MAPPINGS = {
     'ReverbLoadModel': 'Reverb | Load Model (Local)',
@@ -507,5 +483,4 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     'ReverbLibraryVoice': 'Reverb | Voice Library (NPZ Selector)',
     'ReverbGenerate': 'Reverb | Generate Speech',
     'ReverbSaveWav': 'Reverb | Save WAV',
-    'ReverbUnload': 'Reverb | Clear Model Cache',
 }
