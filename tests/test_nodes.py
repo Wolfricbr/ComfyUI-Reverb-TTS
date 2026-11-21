@@ -32,6 +32,15 @@ def write_model(root, variant):
         p.touch()
 
 
+class RemovedNodeTests(unittest.TestCase):
+    def test_cache_clear_node_is_not_exposed(self):
+        self.assertNotIn("ReverbUnload", nodes.NODE_CLASS_MAPPINGS)
+        self.assertNotIn("ReverbUnload", nodes.NODE_DISPLAY_NAME_MAPPINGS)
+        self.assertFalse(hasattr(nodes, "ReverbUnload"))
+        self.assertIn("ReverbLoadModel", nodes.NODE_CLASS_MAPPINGS)
+        self.assertIn("ReverbSaveWav", nodes.NODE_CLASS_MAPPINGS)
+
+
 class LoaderTests(unittest.TestCase):
     def test_loader_fields_no_redundant_variant_or_directory(self):
         fields = nodes.ReverbLoadModel.INPUT_TYPES()
