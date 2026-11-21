@@ -4,7 +4,7 @@
 
 [🇧🇷 Português](#português) · [Original Reverb-TTS model](https://huggingface.co/software-mansion/Reverb-TTS) · [Workflows](./workflows)
 
-> **Experimental integration · v0.3.8.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
+> **Experimental integration · v0.3.9.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
 
 ## Features
 
@@ -15,7 +15,6 @@
 - Select saved profiles from a voice-library dropdown.
 - Text-to-speech generation with language, seed, speed and steps controls.
 - Lossless WAV export (PCM 24-bit, PCM 16-bit, or float), with an audio player in the ComfyUI node.
-- Clear the cached TTS model from memory.
 
 **Important:** `.npz` voice profiles are specific to the Reverb-TTS `Voice` serialization. They are not interchangeable with Fish Audio Drama 3 `.safetensors` voice files or other TTS models.
 
@@ -115,7 +114,6 @@ These commands are **one-time manual setup steps**, not automatic runtime downlo
 | **Reverb · Voice Library (NPZ Selector)** | Pick a saved voice from a dropdown. |
 | **Reverb · Generate Speech** | Generate AUDIO from text and a voice. |
 | **Reverb · Save WAV** | Save a WAV and display an audio preview/player after execution. |
-| **Reverb · Clear Model Cache** | Release cached model references and request CUDA cache cleanup. |
 
 ### Generation settings
 
@@ -276,3 +274,10 @@ O menu de modelos não mostra mais `Auto / fp32` e `Windows / fp32` quando ambos
 - Testing: regression tests now validate preset JSON discovery, missing preset behavior, NPZ profile discovery, speed bounds/default, JSON widget positions, WAV saving and loader selection. The regression suite runs in GitHub Actions before release; no Registry publication is triggered automatically.
 
 **Português:** O seletor `Reverb | Preset Voice` agora lista os JSONs de vozes oficiais instalados localmente; a biblioteca NPZ também lista as vozes salvas em menu. Nos workflows, `speed` foi corrigido para `1.00` após o controle do `seed`. Os modelos continuam locais e não são baixados automaticamente.
+
+
+## v0.3.9 — Removed redundant cache-clear node
+
+The `Reverb | Clear Model Cache` output node was removed from the node registry. Existing model loading, speech generation and voice-library functionality remain unchanged. No public example workflow uses the removed node. **Note:** ComfyUI's own memory-management controls may not clear the extension's Python-level `_MODEL_CACHE`, which remains an internal optimization; restarting ComfyUI clears that cache if needed.
+
+**Português:** O node `Reverb | Clear Model Cache` foi retirado da interface por ser redundante com o gerenciamento de memória do ComfyUI. Nenhum dos cinco workflows públicos utiliza esse node. O cache Python interno continua ativo enquanto o ComfyUI estiver em execução; para liberá-lo completamente, reinicie o ComfyUI.
