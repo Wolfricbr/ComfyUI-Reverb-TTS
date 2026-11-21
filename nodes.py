@@ -1,4 +1,4 @@
-"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.7 — local weights, voice library and audio preview)."""
+"""ComfyUI integration for Software Mansion Reverb-TTS (experimental v0.3.8 — local weights, voice library and audio preview)."""
 import os
 import re
 import gc
@@ -95,6 +95,19 @@ def _installed_model_choices():
         for label, root in matches[1:]:
             choices[f"{label} / {variant}"] = (root, variant)
     return choices
+
+
+
+def _preset_names():
+    """List locally installed JSON presets for available Reverb model roots."""
+    names = set()
+    for root, _variant in _installed_model_choices().values():
+        voices = Path(root) / "Reverb-TTS" / "voices"
+        if voices.is_dir():
+            names.update(p.stem for p in voices.glob("*.json")
+                         if p.is_file() and not p.is_symlink())
+    return sorted(names)
+
 
 
 def _validate_local_files(root, variant):
@@ -263,7 +276,9 @@ class ReverbPresetVoice:
     def INPUT_TYPES(cls):
         return {'required': {
             'model': ('REVERB_TTS_MODEL',),
-            'preset_name': ('STRING', {'default': 'pt_male_standard'}),
+            'preset_name': (_preset_names() or ['(nenhuma voz predefinida encontrada)'], {
+                'tooltip': 'Vozes oficiais JSON encontradas nas pastas locais Reverb-TTS/voices. Atualize o ComfyUI apos instalar novas vozes.',
+            }),
         }}
     RETURN_TYPES = ('REVERB_VOICE',)
     RETURN_NAMES = ('voice',)
@@ -279,6 +294,8 @@ class ReverbPresetVoice:
             )
         available = model.preset_voices()
         name = preset_name.strip()
+        if name == '(nenhuma voz predefinida encontrada)':
+            raise FileNotFoundError('Nenhuma voz predefinida encontrada. Instale os arquivos JSON em Reverb-TTS/voices e atualize o ComfyUI.')
         if name not in available:
             raise ValueError(f'Preset {name!r} inexistente. Disponiveis: {available}')
         return (model.preset_voice(name),)
@@ -339,7 +356,9 @@ class ReverbLibraryVoice:
     @classmethod
     def INPUT_TYPES(cls):
         names = _library_names()
-        return {'required': {'voice_name': (names or ['(nenhuma voz salva)'],)}}
+        return {'required': {'voice_name': (names or ['(nenhuma voz salva)'], {
+            'tooltip': 'Perfis NPZ instalados em voices_custom. Salve a voz e recarregue a pagina para atualizar o menu.',
+        })}}
     RETURN_TYPES = ('REVERB_VOICE',)
     RETURN_NAMES = ('voice',)
     FUNCTION = 'run'
