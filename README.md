@@ -190,7 +190,7 @@ Use reference voices only with appropriate consent or authorization, and review 
 1. Clone o repositório dentro de `ComfyUI/custom_nodes/`.
 2. Instale `requirements.txt` **no Python que executa seu ComfyUI**, após conferir conflitos de dependências com `--dry-run`.
 3. Baixe manualmente os pesos do Reverb, o tokenizer e o codec Higgs para a estrutura explicada acima.
-4. Reinicie o ComfyUI e abra um dos sete workflows.
+4. Reinicie o ComfyUI e abra um dos seis workflows públicos.
 
 **Pasta principal configurada nesta versão para Windows:**
 
@@ -273,7 +273,7 @@ O menu de modelos não mostra mais `Auto / fp32` e `Windows / fp32` quando ambos
 ## v0.3.8 — Voice dropdowns and speed widget fix
 
 - `Reverb | Preset Voice`: `preset_name` is now a native dropdown populated by locally installed `Reverb-TTS/voices/*.json` files discovered through model directories. No download, no typed filenames. New JSON voices appear after frontend refresh or restarting ComfyUI.
-- `Reverb | Voice Library (NPZ Selector)`: its existing dropdown lists `voices_custom/*.npz` profile names; improve tooltip, and refresh ComfyUI after saving new voices. The library displays an empty-library placeholder if no profiles exist.
+- `Reverb | Voice Library (NPZ Selector)`: its existing dropdown lists `voices_custom/*.npz` profile names; improve tooltip, and refresh ComfyUI after saving new voices. The library displays an empty-library placeholder if no profiles exist. Workflow 04 and workflow 07 no longer store a fixed profile name; the dropdown defaults to the user's available profiles.
 - `Reverb | Generate Speech`: `speed` already has backend default `1.0`; the shipped workflow JSON files omitted the dynamically inserted `control after generate` widget after `seed`, so the speed position was shifted to `8.00`. All five workflows that generate speech now explicitly serialize the seed control as `fixed` and speed as `1.0`.
 - Testing: regression tests now validate preset JSON discovery, missing preset behavior, NPZ profile discovery, speed bounds/default, JSON widget positions, WAV saving and loader selection. The regression suite runs in GitHub Actions before release; no Registry publication is triggered automatically.
 
