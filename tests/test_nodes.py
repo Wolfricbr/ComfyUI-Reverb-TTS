@@ -32,6 +32,15 @@ def write_model(root, variant):
         p.touch()
 
 
+class RemovedNodeTests(unittest.TestCase):
+    def test_cache_clear_node_is_not_exposed(self):
+        self.assertNotIn("ReverbUnload", nodes.NODE_CLASS_MAPPINGS)
+        self.assertNotIn("ReverbUnload", nodes.NODE_DISPLAY_NAME_MAPPINGS)
+        self.assertFalse(hasattr(nodes, "ReverbUnload"))
+        self.assertIn("ReverbLoadModel", nodes.NODE_CLASS_MAPPINGS)
+        self.assertIn("ReverbSaveWav", nodes.NODE_CLASS_MAPPINGS)
+
+
 class LoaderTests(unittest.TestCase):
     def test_loader_fields_no_redundant_variant_or_directory(self):
         fields = nodes.ReverbLoadModel.INPUT_TYPES()
@@ -133,10 +142,25 @@ class VoiceSelectionTests(unittest.TestCase):
             nodes.ReverbPresetVoice().run(FakeModel(), "not_installed")
 
     def test_npz_library_selection_loads_selected_profile(self):
-        with mock.patch.object(nodes.ReverbLoadVoice, "run", return_value=("voice_object",)) as load:
-            output = nodes.ReverbLibraryVoice().run("voz_b")
-            self.assertEqual(output, ("voice_object",))
-            load.assert_called_once_with("voz_b")
+        class FakeVoice:
+            @staticmethod
+            def load(path):
+                return ("loaded", path)
+        with tempfile.TemporaryDirectory() as tmp:
+            profile = Path(tmp) / "voz_b.npz"
+            profile.touch()
+            with mock.patch.object(nodes, "_voice_path", return_value=profile), mock.patch.object(
+                nodes, "_lib", return_value=(None, FakeVoice)
+            ):
+                output = nodes.ReverbLibraryVoice().run("voz_b")
+            self.assertEqual(output, (("loaded", str(profile)),))
+
+    def test_removed_nodes_not_exposed(self):
+        for name in ("ReverbUnload", "ReverbLoadVoice"):
+            self.assertNotIn(name, nodes.NODE_CLASS_MAPPINGS)
+            self.assertNotIn(name, nodes.NODE_DISPLAY_NAME_MAPPINGS)
+            self.assertFalse(hasattr(nodes, name))
+        self.assertIn("ReverbLibraryVoice", nodes.NODE_CLASS_MAPPINGS)
 
     def test_generate_speech_forwards_speed_one(self):
         class FakeModel:
