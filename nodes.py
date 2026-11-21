@@ -337,23 +337,6 @@ class ReverbSaveVoice:
         return (voice, str(path))
 
 
-class ReverbLoadVoice:
-    @classmethod
-    def INPUT_TYPES(cls):
-        return {'required': {'voice_name': ('STRING', {'default': 'minha_voz'})}}
-    RETURN_TYPES = ('REVERB_VOICE',)
-    RETURN_NAMES = ('voice',)
-    FUNCTION = 'run'
-    CATEGORY = 'audio/Reverb TTS'
-
-    def run(self, voice_name):
-        _, Voice = _lib()
-        path = _voice_path(voice_name)
-        if not path.is_file():
-            raise FileNotFoundError(f'Voz nao encontrada: {path}. Crie com Reverb Save Voice.')
-        return (Voice.load(str(path)),)
-
-
 class ReverbLibraryVoice:
     """Seleciona perfis NPZ por nome na biblioteca, sem digitar caminho."""
     @classmethod
@@ -380,7 +363,11 @@ class ReverbLibraryVoice:
     def run(self, voice_name):
         if voice_name == '(nenhuma voz salva)':
             raise FileNotFoundError('Biblioteca vazia. Use Reverb | Save Voice para criar um perfil NPZ e atualize a pagina do ComfyUI.')
-        return ReverbLoadVoice().run(voice_name)
+        _, Voice = _lib()
+        path = _voice_path(voice_name)
+        if not path.is_file():
+            raise FileNotFoundError(f'Voz nao encontrada: {path}. Crie com Reverb | Save Voice.')
+        return (Voice.load(str(path)),)
 
 
 class ReverbGenerate:
@@ -469,7 +456,6 @@ NODE_CLASS_MAPPINGS = {
     'ReverbVoiceFromAudio': ReverbVoiceFromAudio,
     'ReverbPresetVoice': ReverbPresetVoice,
     'ReverbSaveVoice': ReverbSaveVoice,
-    'ReverbLoadVoice': ReverbLoadVoice,
     'ReverbLibraryVoice': ReverbLibraryVoice,
     'ReverbGenerate': ReverbGenerate,
     'ReverbSaveWav': ReverbSaveWav,
@@ -479,7 +465,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     'ReverbVoiceFromAudio': 'Reverb | Clone Voice from Audio',
     'ReverbPresetVoice': 'Reverb | Preset Voice',
     'ReverbSaveVoice': 'Reverb | Save Voice (.npz)',
-    'ReverbLoadVoice': 'Reverb | Load Voice by Name (.npz)',
     'ReverbLibraryVoice': 'Reverb | Voice Library (NPZ Selector)',
     'ReverbGenerate': 'Reverb | Generate Speech',
     'ReverbSaveWav': 'Reverb | Save WAV',
