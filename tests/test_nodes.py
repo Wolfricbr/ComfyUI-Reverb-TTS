@@ -120,6 +120,39 @@ class VoiceSelectionTests(unittest.TestCase):
             with mock.patch.object(nodes, "_voices_dir", return_value=Path(tmp)):
                 self.assertEqual(nodes.ReverbLibraryVoice.INPUT_TYPES()["required"]["voice_name"][0], ["(nenhuma voz salva)"])
 
+    def test_preset_dropdown_selection_reaches_model(self):
+        class FakeModel:
+            presets = Path("/")
+            def preset_voices(self):
+                return ["pt_male_standard", "en_female_test"]
+            def preset_voice(self, name):
+                return {"chosen": name}
+        output = nodes.ReverbPresetVoice().run(FakeModel(), "pt_male_standard")
+        self.assertEqual(output[0]["chosen"], "pt_male_standard")
+        with self.assertRaises(ValueError):
+            nodes.ReverbPresetVoice().run(FakeModel(), "not_installed")
+
+    def test_npz_library_selection_loads_selected_profile(self):
+        with mock.patch.object(nodes.ReverbLoadVoice, "run", return_value=("voice_object",)) as load:
+            output = nodes.ReverbLibraryVoice().run("voz_b")
+            self.assertEqual(output, ("voice_object",))
+            load.assert_called_once_with("voz_b")
+
+    def test_generate_speech_forwards_speed_one(self):
+        class FakeModel:
+            sample_rate = 24000
+            def generate(self, *args, **kwargs):
+                self.options = kwargs
+                return [0.0, 0.0]
+        model = FakeModel()
+        with mock.patch.object(nodes, "_to_audio", return_value={"waveform": "ok", "sample_rate": 24000}):
+            result = nodes.ReverbGenerate().run(model, "voice", "Olá", "pt", 42, 1.0, 8)
+        self.assertEqual(result[0]["sample_rate"], 24000)
+        self.assertEqual(model.options["speed"], 1.0)
+        self.assertEqual(model.options["steps"], 8)
+        with self.assertRaises(ValueError):
+            nodes.ReverbGenerate().run(model, "voice", "Olá", "pt", 42, 8.0, 8)
+
     def test_generate_speed_default_one_and_valid_range(self):
         speed = nodes.ReverbGenerate.INPUT_TYPES()["required"]["speed"]
         self.assertEqual(speed[1]["default"], 1.0)
