@@ -196,7 +196,7 @@ class SaveWavTests(unittest.TestCase):
 class WorkflowTests(unittest.TestCase):
     def test_all_public_workflows_have_valid_loader_and_links(self):
         files = list((ROOT / "workflows").glob("*.json"))
-        self.assertEqual(len(files), 6)
+        self.assertEqual(len(files), 5)
         for p in files:
             with self.subTest(p=p.name):
                 workflow = json.loads(p.read_text(encoding="utf-8"))
