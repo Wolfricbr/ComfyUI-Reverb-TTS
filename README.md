@@ -268,3 +268,13 @@ O menu de modelos não mostra mais `Auto / fp32` e `Windows / fp32` quando ambos
 **English:** Fixed the `Reverb | Save WAV` node incorrectly declaring its `audioUI` preview widget as a mandatory input. The frontend was asking for a connection to the UI widget and blocking execution. The preview widget is now in the **optional** inputs section, while the real `audio` input remains required. WAV saving and `ui.audio` preview metadata are unchanged. Restart ComfyUI and refresh the workflow; recreate the Save WAV node if it retains the old required slot. Verify the inline player after a fresh execution.
 
 **Português:** Corrigido o erro **Missing connection: Reverb | Save WAV – audioUI**. `audioUI` é um widget de interface, não uma entrada que precisa ser conectada. Agora está declarado como entrada opcional. A entrada `audio` continua obrigatória. Reinicie o ComfyUI, atualize a página e, se necessário, substitua apenas o node Save WAV por um novo antes de executar novamente. O player deve ser validado na instalação real.
+
+
+## Planned v0.3.8 — Voice dropdowns and speed widget fix (test branch)
+
+- `Reverb | Preset Voice`: `preset_name` is now a native dropdown populated by locally installed `Reverb-TTS/voices/*.json` files discovered through model directories. No download, no typed filenames. New JSON voices appear after frontend refresh or restarting ComfyUI.
+- `Reverb | Voice Library (NPZ Selector)`: its existing dropdown lists `voices_custom/*.npz` profile names; improve tooltip, and refresh ComfyUI after saving new voices. The library displays an empty-library placeholder if no profiles exist.
+- `Reverb | Generate Speech`: `speed` already has backend default `1.0`; the shipped workflow JSON files omitted the dynamically inserted `control after generate` widget after `seed`, so the speed position was shifted to `8.00`. All five workflows that generate speech now explicitly serialize the seed control as `fixed` and speed as `1.0`.
+- Testing: regression tests now validate preset JSON discovery, missing preset behavior, NPZ profile discovery, speed bounds/default, JSON widget positions, WAV saving and loader selection. The changes are kept in the `test/validation-suite` branch until checks succeed; no Registry publication has been triggered.
+
+**Português:** O seletor `Reverb | Preset Voice` agora lista os JSONs de vozes oficiais instalados localmente; a biblioteca NPZ também lista as vozes salvas em menu. Nos workflows, `speed` foi corrigido para `1.00` após o controle do `seed`. Os modelos continuam locais e não são baixados automaticamente.
