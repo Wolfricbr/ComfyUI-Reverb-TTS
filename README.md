@@ -251,7 +251,7 @@ O pacote `reverb-tts==1.0.0` pode produzir conflitos em instalações com outros
 
 The five public workflow JSON files (01–05) were migrated to `Auto / fp32` and will work when an FP32 model is installed in one of the scanned folders. If only another precision is installed, select it from the dropdown. Existing saved workflows using the old loader widget layout should be reloaded using the updated examples or have the loader node replaced. **Restart ComfyUI** after updating and refresh to rescan model folders.
 
-**Português:** O node **Reverb | Load Model (Local)** tem agora um único menu `model`, com os modelos instalados detectados automaticamente. Os campos `variant` e `models_directory` foram retirados da interface. Permanecem `device` e a opção avançada `force_fp32_compute`, desativada por padrão. Para usar uma pasta personalizada, defina `REVERB_TTS_MODELS_DIR` antes de abrir o ComfyUI. Os cinco workflows públicos (01–05 e 07) foram adaptados para `Auto / fp32`. Atualize os workflows e, se necessário, recrie o node carregador antigo. Nenhum modelo é baixado automaticamente.
+**Português:** O node **Reverb | Load Model (Local)** tem agora um único menu `model`, com os modelos instalados detectados automaticamente. Os campos `variant` e `models_directory` foram retirados da interface. Permanecem `device` e a opção avançada `force_fp32_compute`, desativada por padrão. Para usar uma pasta personalizada, defina `REVERB_TTS_MODELS_DIR` antes de abrir o ComfyUI. Os cinco workflows públicos (01–05) foram adaptados para `Auto / fp32`. Atualize os workflows e, se necessário, recrie o node carregador antigo. Nenhum modelo é baixado automaticamente.
 
 
 ## v0.3.6 — Deduplicated model selector / Seletor sem duplicatas
