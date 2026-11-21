@@ -110,7 +110,6 @@ These commands are **one-time manual setup steps**, not automatic runtime downlo
 | **Reverb · Clone Voice from Audio** | Build a voice from an audio reference and matching transcript. |
 | **Reverb · Preset Voice** | Select a locally installed official voice preset by name. |
 | **Reverb · Save Voice (.npz)** | Save a reusable custom voice profile. |
-| **Reverb · Load Voice by Name (.npz)** | Load an existing custom voice profile by file stem. |
 | **Reverb · Voice Library (NPZ Selector)** | Pick a saved voice from a dropdown. |
 | **Reverb · Generate Speech** | Generate AUDIO from text and a voice. |
 | **Reverb · Save WAV** | Save a WAV and display an audio preview/player after execution. |
@@ -276,8 +275,13 @@ O menu de modelos não mostra mais `Auto / fp32` e `Windows / fp32` quando ambos
 **Português:** O seletor `Reverb | Preset Voice` agora lista os JSONs de vozes oficiais instalados localmente; a biblioteca NPZ também lista as vozes salvas em menu. Nos workflows, `speed` foi corrigido para `1.00` após o controle do `seed`. Os modelos continuam locais e não são baixados automaticamente.
 
 
-## v0.3.9 — Removed redundant cache-clear node
+## v0.3.9 — Removed two redundant nodes
 
 The `Reverb | Clear Model Cache` output node was removed from the node registry. Existing model loading, speech generation and voice-library functionality remain unchanged. No public example workflow uses the removed node. **Note:** ComfyUI's own memory-management controls may not clear the extension's Python-level `_MODEL_CACHE`, which remains an internal optimization; restarting ComfyUI clears that cache if needed.
 
 **Português:** O node `Reverb | Clear Model Cache` foi retirado da interface por ser redundante com o gerenciamento de memória do ComfyUI. Nenhum dos cinco workflows públicos utiliza esse node. O cache Python interno continua ativo enquanto o ComfyUI estiver em execução; para liberá-lo completamente, reinicie o ComfyUI.
+
+
+The **Reverb | Load Voice by Name (.npz)** node was also removed because **Reverb | Voice Library (NPZ Selector)** already lets users choose saved profiles from a dropdown. Voice Library now loads the selected NPZ directly, without relying on the removed node. Existing personal workflows using the old Load Voice by Name node must be updated to use Voice Library; the five public workflows remain available.
+
+**Português:** O node **Reverb | Load Voice by Name (.npz)** também foi removido. O **Reverb | Voice Library (NPZ Selector)** já permite escolher a voz numa lista e agora carrega o NPZ diretamente. Workflows particulares que usarem o node antigo devem substituí-lo pelo seletor. Não removemos nenhum perfil de voz salvo.
