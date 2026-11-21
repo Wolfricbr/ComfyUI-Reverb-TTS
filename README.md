@@ -4,7 +4,7 @@
 
 [🇧🇷 Português](#português) · [Original Reverb-TTS model](https://huggingface.co/software-mansion/Reverb-TTS) · [Workflows](./workflows)
 
-> **Experimental integration · v0.3.7.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
+> **Experimental integration · v0.3.8.** This is a community ComfyUI integration, not an official Software Mansion release. Models are **not downloaded automatically**. Install the weights separately and read the license section before using generated audio.
 
 ## Features
 
@@ -190,7 +190,7 @@ Use reference voices only with appropriate consent or authorization, and review 
 1. Clone o repositório dentro de `ComfyUI/custom_nodes/`.
 2. Instale `requirements.txt` **no Python que executa seu ComfyUI**, após conferir conflitos de dependências com `--dry-run`.
 3. Baixe manualmente os pesos do Reverb, o tokenizer e o codec Higgs para a estrutura explicada acima.
-4. Reinicie o ComfyUI e abra um dos sete workflows.
+4. Reinicie o ComfyUI e abra um dos seis workflows públicos.
 
 **Pasta principal configurada nesta versão para Windows:**
 
@@ -268,3 +268,13 @@ O menu de modelos não mostra mais `Auto / fp32` e `Windows / fp32` quando ambos
 **English:** Fixed the `Reverb | Save WAV` node incorrectly declaring its `audioUI` preview widget as a mandatory input. The frontend was asking for a connection to the UI widget and blocking execution. The preview widget is now in the **optional** inputs section, while the real `audio` input remains required. WAV saving and `ui.audio` preview metadata are unchanged. Restart ComfyUI and refresh the workflow; recreate the Save WAV node if it retains the old required slot. Verify the inline player after a fresh execution.
 
 **Português:** Corrigido o erro **Missing connection: Reverb | Save WAV – audioUI**. `audioUI` é um widget de interface, não uma entrada que precisa ser conectada. Agora está declarado como entrada opcional. A entrada `audio` continua obrigatória. Reinicie o ComfyUI, atualize a página e, se necessário, substitua apenas o node Save WAV por um novo antes de executar novamente. O player deve ser validado na instalação real.
+
+
+## v0.3.8 — Voice dropdowns and speed widget fix
+
+- `Reverb | Preset Voice`: `preset_name` is now a native dropdown populated by locally installed `Reverb-TTS/voices/*.json` files discovered through model directories. No download, no typed filenames. New JSON voices appear after frontend refresh or restarting ComfyUI.
+- `Reverb | Voice Library (NPZ Selector)`: its existing dropdown lists `voices_custom/*.npz` profile names; improve tooltip, and refresh ComfyUI after saving new voices. The library displays an empty-library placeholder if no profiles exist. Workflow 04 and workflow 07 no longer store a fixed profile name; the dropdown defaults to the user's available profiles.
+- `Reverb | Generate Speech`: `speed` already has backend default `1.0`; the shipped workflow JSON files omitted the dynamically inserted `control after generate` widget after `seed`, so the speed position was shifted to `8.00`. All five workflows that generate speech now explicitly serialize the seed control as `fixed` and speed as `1.0`.
+- Testing: regression tests now validate preset JSON discovery, missing preset behavior, NPZ profile discovery, speed bounds/default, JSON widget positions, WAV saving and loader selection. The regression suite runs in GitHub Actions before release; no Registry publication is triggered automatically.
+
+**Português:** O seletor `Reverb | Preset Voice` agora lista os JSONs de vozes oficiais instalados localmente; a biblioteca NPZ também lista as vozes salvas em menu. Nos workflows, `speed` foi corrigido para `1.00` após o controle do `seed`. Os modelos continuam locais e não são baixados automaticamente.

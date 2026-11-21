@@ -69,9 +69,7 @@
       "properties": {
         "Node name for S&R": "ReverbLibraryVoice"
       },
-      "widgets_values": [
-        "(nenhuma voz salva)"
-      ]
+      "widgets_values": []
     },
     {
       "id": 3,
@@ -116,9 +114,18 @@
         "Olá! Esta narração utiliza uma voz escolhida na minha biblioteca local.",
         "pt",
         42,
+        "fixed",
         1,
         8
-      ]
+      ],
+      "widgets_values_named": {
+        "text": "Olá! Esta narração utiliza uma voz escolhida na minha biblioteca local.",
+        "language": "pt",
+        "seed": 42,
+        "control_after_generate": "fixed",
+        "speed": 1,
+        "steps": 8
+      }
     },
     {
       "id": 4,
