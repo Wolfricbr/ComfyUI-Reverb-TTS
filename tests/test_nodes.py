@@ -178,6 +178,8 @@ class WorkflowTests(unittest.TestCase):
                     self.assertEqual(values[3], "fixed")
                     self.assertEqual(values[4], 1.0)
                     self.assertEqual(values[5], 8)
+                    self.assertEqual(generate["widgets_values_named"]["speed"], 1.0)
+                    self.assertEqual(generate["widgets_values_named"]["control_after_generate"], "fixed")
                 for preset in (n for n in workflow["nodes"] if n["type"] == "ReverbPresetVoice"):
                     self.assertEqual(preset["widgets_values"], ["pt_male_standard"])
                 for link in workflow["links"]:
