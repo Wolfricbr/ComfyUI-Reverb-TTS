@@ -274,9 +274,13 @@ class ReverbVoiceFromAudio:
 class ReverbPresetVoice:
     @classmethod
     def INPUT_TYPES(cls):
+        presets = _preset_names()
+        names = presets or ['(nenhuma voz predefinida encontrada)']
+        default = 'pt_male_standard' if 'pt_male_standard' in presets else names[0]
         return {'required': {
             'model': ('REVERB_TTS_MODEL',),
-            'preset_name': (_preset_names() or ['(nenhuma voz predefinida encontrada)'], {
+            'preset_name': (names, {
+                'default': default,
                 'tooltip': 'Vozes oficiais JSON encontradas nas pastas locais Reverb-TTS/voices. Atualize o ComfyUI apos instalar novas vozes.',
             }),
         }}
@@ -356,7 +360,9 @@ class ReverbLibraryVoice:
     @classmethod
     def INPUT_TYPES(cls):
         names = _library_names()
-        return {'required': {'voice_name': (names or ['(nenhuma voz salva)'], {
+        choices = names or ['(nenhuma voz salva)']
+        return {'required': {'voice_name': (choices, {
+            'default': choices[0],
             'tooltip': 'Perfis NPZ instalados em voices_custom. Salve a voz e recarregue a pagina para atualizar o menu.',
         })}}
     RETURN_TYPES = ('REVERB_VOICE',)
