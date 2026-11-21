@@ -137,9 +137,8 @@ Open a JSON from [`workflows/`](./workflows) in ComfyUI.
 | [03 — Create and Save Voice](./workflows/03-Criar-e-Salvar-Voz.json) | Reference audio + transcript → reusable `.npz` voice. |
 | [04 — Load Voice and Generate](./workflows/04-Carregar-Voz-Salva-e-Gerar-FP32.json) | Existing custom voice → WAV. |
 | [05 — Clone, Save and Generate](./workflows/05-Clonar-Salvar-e-Gerar-FP32.json) | One execution produces both a voice profile and speech WAV. |
-| [07 — Voice Library Selector](./workflows/07-Biblioteca-de-Vozes-Seletor.json) | Select a `.npz` from the library and synthesize speech. |
 
-**Suggested first test:** Workflow 02 with `pt_male_standard` and a short sentence. Then try Workflow 03 followed by 07. To refresh the saved voice list, reload the ComfyUI page or recreate the selector node.
+**Suggested first test:** Workflow 02 with `pt_male_standard` and a short sentence. Then try Workflow 03 followed by Workflow 04. To refresh the saved voice list, reload the ComfyUI page or recreate the selector node.
 
 ### Voice library
 
@@ -190,7 +189,7 @@ Use reference voices only with appropriate consent or authorization, and review 
 1. Clone o repositório dentro de `ComfyUI/custom_nodes/`.
 2. Instale `requirements.txt` **no Python que executa seu ComfyUI**, após conferir conflitos de dependências com `--dry-run`.
 3. Baixe manualmente os pesos do Reverb, o tokenizer e o codec Higgs para a estrutura explicada acima.
-4. Reinicie o ComfyUI e abra um dos seis workflows públicos.
+4. Reinicie o ComfyUI e abra um dos cinco workflows públicos.
 
 **Pasta principal configurada nesta versão para Windows:**
 
@@ -209,7 +208,6 @@ Na v0.3.2, o node **Reverb | Load Model (Local)** aceita o campo opcional `model
 | 03 | Criar e salvar voz | Perfil de voz `.npz` |
 | 04 | Carregar voz e gerar | WAV a partir de perfil salvo |
 | 05 | Clonar, salvar e gerar | Perfil `.npz` + WAV |
-| 07 | Biblioteca de vozes | Escolha a voz no menu e gere WAV |
 
 **Biblioteca de vozes:** `C:\AI\ComfyUI-Data\models\reverb_tts\voices_custom\`. Novas vozes podem exigir atualizar a página (F5) para aparecer no seletor.
 
@@ -251,9 +249,9 @@ O pacote `reverb-tts==1.0.0` pode produzir conflitos em instalações com outros
 
 **English:** The model loader now uses a single `model` dropdown listing only complete local model variants found in supported directories (for example `Auto / fp32`, `Windows / int8`). The redundant `variant` field and the per-node `models_directory` field were removed. `device` remains available, while `force_fp32_compute` is an **optional advanced** checkbox defaulting to `false`. An alternative models directory can still be configured globally using the `REVERB_TTS_MODELS_DIR` environment variable before launching ComfyUI. Model weights are never downloaded automatically.
 
-The six public workflow JSON files (01–05 and 07) were migrated to `Auto / fp32` and will work when an FP32 model is installed in one of the scanned folders. If only another precision is installed, select it from the dropdown. Existing saved workflows using the old loader widget layout should be reloaded using the updated examples or have the loader node replaced. **Restart ComfyUI** after updating and refresh to rescan model folders.
+The five public workflow JSON files (01–05) were migrated to `Auto / fp32` and will work when an FP32 model is installed in one of the scanned folders. If only another precision is installed, select it from the dropdown. Existing saved workflows using the old loader widget layout should be reloaded using the updated examples or have the loader node replaced. **Restart ComfyUI** after updating and refresh to rescan model folders.
 
-**Português:** O node **Reverb | Load Model (Local)** tem agora um único menu `model`, com os modelos instalados detectados automaticamente. Os campos `variant` e `models_directory` foram retirados da interface. Permanecem `device` e a opção avançada `force_fp32_compute`, desativada por padrão. Para usar uma pasta personalizada, defina `REVERB_TTS_MODELS_DIR` antes de abrir o ComfyUI. Os seis workflows públicos (01–05 e 07) foram adaptados para `Auto / fp32`. Atualize os workflows e, se necessário, recrie o node carregador antigo. Nenhum modelo é baixado automaticamente.
+**Português:** O node **Reverb | Load Model (Local)** tem agora um único menu `model`, com os modelos instalados detectados automaticamente. Os campos `variant` e `models_directory` foram retirados da interface. Permanecem `device` e a opção avançada `force_fp32_compute`, desativada por padrão. Para usar uma pasta personalizada, defina `REVERB_TTS_MODELS_DIR` antes de abrir o ComfyUI. Os cinco workflows públicos (01–05 e 07) foram adaptados para `Auto / fp32`. Atualize os workflows e, se necessário, recrie o node carregador antigo. Nenhum modelo é baixado automaticamente.
 
 
 ## v0.3.6 — Deduplicated model selector / Seletor sem duplicatas
@@ -273,7 +271,7 @@ O menu de modelos não mostra mais `Auto / fp32` e `Windows / fp32` quando ambos
 ## v0.3.8 — Voice dropdowns and speed widget fix
 
 - `Reverb | Preset Voice`: `preset_name` is now a native dropdown populated by locally installed `Reverb-TTS/voices/*.json` files discovered through model directories. No download, no typed filenames. New JSON voices appear after frontend refresh or restarting ComfyUI.
-- `Reverb | Voice Library (NPZ Selector)`: its existing dropdown lists `voices_custom/*.npz` profile names; improve tooltip, and refresh ComfyUI after saving new voices. The library displays an empty-library placeholder if no profiles exist. Workflow 04 and workflow 07 no longer store a fixed profile name; the dropdown defaults to the user's available profiles.
+- `Reverb | Voice Library (NPZ Selector)`: its existing dropdown lists `voices_custom/*.npz` profile names; improve tooltip, and refresh ComfyUI after saving new voices. The library displays an empty-library placeholder if no profiles exist. Workflow 04 no longer stores a fixed profile name; the dropdown defaults to the user's available profiles.
 - `Reverb | Generate Speech`: `speed` already has backend default `1.0`; the shipped workflow JSON files omitted the dynamically inserted `control after generate` widget after `seed`, so the speed position was shifted to `8.00`. All five workflows that generate speech now explicitly serialize the seed control as `fixed` and speed as `1.0`.
 - Testing: regression tests now validate preset JSON discovery, missing preset behavior, NPZ profile discovery, speed bounds/default, JSON widget positions, WAV saving and loader selection. The regression suite runs in GitHub Actions before release; no Registry publication is triggered automatically.
 
