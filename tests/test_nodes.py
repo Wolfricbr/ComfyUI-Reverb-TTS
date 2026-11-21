@@ -77,6 +77,56 @@ class LoaderTests(unittest.TestCase):
                 nodes.ReverbLoadModel().run("Auto / fp32", "auto")
 
 
+class VoiceSelectionTests(unittest.TestCase):
+    def test_preset_dropdown_discovers_local_json_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            voices = root / "Reverb-TTS" / "voices"
+            voices.mkdir(parents=True)
+            (voices / "pt_male_standard.json").write_text("{}", encoding="utf-8")
+            (voices / "en_female_test.json").write_text("{}", encoding="utf-8")
+            (voices / "not_a_voice.txt").write_text("dummy", encoding="utf-8")
+            with mock.patch.object(nodes, "_installed_model_choices", return_value={
+                "Auto / fp32": (str(root), "fp32")
+            }):
+                self.assertEqual(nodes._preset_names(), ["en_female_test", "pt_male_standard"])
+                preset_type = nodes.ReverbPresetVoice.INPUT_TYPES()["required"]["preset_name"][0]
+                self.assertEqual(preset_type, ["en_female_test", "pt_male_standard"])
+                self.assertIsInstance(preset_type, list)
+
+    def test_no_preset_dropdown_uses_descriptive_placeholder(self):
+        with mock.patch.object(nodes, "_installed_model_choices", return_value={}):
+            preset = nodes.ReverbPresetVoice.INPUT_TYPES()["required"]["preset_name"]
+            self.assertEqual(preset[0], ["(nenhuma voz predefinida encontrada)"])
+            with self.assertRaises(FileNotFoundError):
+                class Dummy:
+                    presets = Path("/")
+                with mock.patch.object(Dummy, "preset_voices", return_value=[] , create=True):
+                    nodes.ReverbPresetVoice().run(Dummy(), "(nenhuma voz predefinida encontrada)")
+
+    def test_npz_library_dropdown_lists_actual_profiles(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            profiles = Path(tmp)
+            (profiles / "voz_a.npz").touch()
+            (profiles / "voz_b.npz").touch()
+            (profiles / "skip.json").touch()
+            with mock.patch.object(nodes, "_voices_dir", return_value=profiles):
+                choices = nodes.ReverbLibraryVoice.INPUT_TYPES()["required"]["voice_name"][0]
+                self.assertEqual(choices, ["voz_a", "voz_b"])
+                self.assertIsInstance(choices, list)
+
+    def test_empty_npz_library_placeholder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(nodes, "_voices_dir", return_value=Path(tmp)):
+                self.assertEqual(nodes.ReverbLibraryVoice.INPUT_TYPES()["required"]["voice_name"][0], ["(nenhuma voz salva)"])
+
+    def test_generate_speed_default_one_and_valid_range(self):
+        speed = nodes.ReverbGenerate.INPUT_TYPES()["required"]["speed"]
+        self.assertEqual(speed[1]["default"], 1.0)
+        self.assertEqual(speed[1]["min"], 0.5)
+        self.assertEqual(speed[1]["max"], 2.0)
+
+
 class SaveWavTests(unittest.TestCase):
     def test_audio_ui_not_required_input(self):
         fields = nodes.ReverbSaveWav.INPUT_TYPES()
@@ -122,6 +172,14 @@ class WorkflowTests(unittest.TestCase):
                 loads = [n for n in workflow["nodes"] if n["type"] == "ReverbLoadModel"]
                 self.assertEqual(len(loads), 1)
                 self.assertEqual(loads[0]["widgets_values"], ["Auto / fp32", "auto", False])
+                for generate in (n for n in workflow["nodes"] if n["type"] == "ReverbGenerate"):
+                    values = generate["widgets_values"]
+                    self.assertEqual(len(values), 6)
+                    self.assertEqual(values[3], "fixed")
+                    self.assertEqual(values[4], 1.0)
+                    self.assertEqual(values[5], 8)
+                for preset in (n for n in workflow["nodes"] if n["type"] == "ReverbPresetVoice"):
+                    self.assertEqual(preset["widgets_values"], ["pt_male_standard"])
                 for link in workflow["links"]:
                     _, src, srcslot, dst, dstslot, datatype = link
                     self.assertIn(src, by_id)
